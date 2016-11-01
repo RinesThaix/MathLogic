@@ -35,31 +35,27 @@ public class Parser {
         while(true) {
             String partite = findPartite();
             switch(pl) {
-                case END: {
+                case END:
                     if(operations.isEmpty())
                         return vars.get(0);
                     return endThisGracefully(vars, operations);
-                }case BRACKET_OPEN: {
+                case BRACKET_OPEN:
                     vars.add(parseExact(expr));
                     break;
-                }case BRACKET_CLOSE:
+                case BRACKET_CLOSE:
                     return endThisGracefully(vars, operations);
-                case VARIABLE: {
+                case VARIABLE:
                     vars.add(new Lexeme(partite));
                     break;
-                }case NOT: {
+                case NOT:
                     operations.add(new Lexeme(LexemeType.NOT));
                     break;
-                }case AND: {
-                    processOperation(LexemeType.AND, vars, operations);
+                case AND:
+                case OR:
+                case IMPLICATION:
+                    processOperation(LexemeType.valueOf(pl.name()), vars, operations);
                     break;
-                }case OR: {
-                    processOperation(LexemeType.OR, vars, operations);
-                    break;
-                }case IMPLICATION: {
-                    processOperation(LexemeType.IMPLICATION, vars, operations);
-                    break;
-                }default:
+                default:
                     break;
             }
         }
