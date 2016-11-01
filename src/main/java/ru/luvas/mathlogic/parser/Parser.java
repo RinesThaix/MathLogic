@@ -6,7 +6,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import ru.luvas.mathlogic.Lexeme;
 import ru.luvas.mathlogic.LexemeType;
-import ru.luvas.mathlogic.utils.UtilChat;
 
 /**
  *
@@ -39,12 +38,12 @@ public class Parser {
                 case END: {
                     if(operations.isEmpty())
                         return vars.get(0);
-                    return balanceBrackets(vars, operations);
+                    return endThisGracefully(vars, operations);
                 }case BRACKET_OPEN: {
                     vars.add(parseExact(expr));
                     break;
                 }case BRACKET_CLOSE:
-                    return balanceBrackets(vars, operations);
+                    return endThisGracefully(vars, operations);
                 case VARIABLE: {
                     vars.add(new Lexeme(partite));
                     break;
@@ -52,34 +51,13 @@ public class Parser {
                     operations.add(new Lexeme(LexemeType.NOT));
                     break;
                 }case AND: {
-                    while(!operations.isEmpty() && operations.get(0).getType().hasHigherPriority(LexemeType.AND)) {
-                        Lexeme operation = operations.remove(0);
-                        if(operation.getType() == LexemeType.NOT)
-                            vars.add(new Lexeme(operation, vars.remove(0)));
-                        else
-                            vars.add(new Lexeme(operation, vars.remove(0), vars.remove(0)));
-                    }
-                    operations.add(new Lexeme(LexemeType.AND));
+                    processOperation(LexemeType.AND, vars, operations);
                     break;
                 }case OR: {
-                    while(!operations.isEmpty() && operations.get(0).getType().hasHigherPriority(LexemeType.OR)) {
-                        Lexeme operation = operations.remove(0);
-                        if(operation.getType() == LexemeType.NOT)
-                            vars.add(new Lexeme(operation, vars.remove(0)));
-                        else
-                            vars.add(new Lexeme(operation, vars.remove(0), vars.remove(0)));
-                    }
-                    operations.add(new Lexeme(LexemeType.OR));
+                    processOperation(LexemeType.OR, vars, operations);
                     break;
                 }case IMPLICATION: {
-                    while(!operations.isEmpty() && operations.get(0).getType().hasHigherPriority(LexemeType.IMPLICATION)) {
-                        Lexeme operation = operations.remove(0);
-                        if(operation.getType() == LexemeType.NOT)
-                            vars.add(new Lexeme(operation, vars.remove(0)));
-                        else
-                            vars.add(new Lexeme(operation, vars.remove(0), vars.remove(0)));
-                    }
-                    operations.add(new Lexeme(LexemeType.IMPLICATION));
+                    processOperation(LexemeType.IMPLICATION, vars, operations);
                     break;
                 }default:
                     break;
@@ -87,7 +65,18 @@ public class Parser {
         }
     }
     
-    private Lexeme balanceBrackets(List<Lexeme> vars, List<Lexeme> operations) {
+    private void processOperation(LexemeType type, List<Lexeme> vars, List<Lexeme> operations) {
+        while(!operations.isEmpty() && operations.get(0).getType().hasHigherPriority(type)) {
+            Lexeme operation = operations.remove(0);
+            if(operation.getType() == LexemeType.NOT)
+                vars.add(new Lexeme(operation, vars.remove(0)));
+            else
+                vars.add(new Lexeme(operation, vars.remove(0), vars.remove(0)));
+        }
+        operations.add(new Lexeme(type));
+    }
+    
+    private Lexeme endThisGracefully(List<Lexeme> vars, List<Lexeme> operations) {
         while(!operations.isEmpty()) {
             Lexeme operation = operations.remove(0);
             if(operation.getType() == LexemeType.NOT)
