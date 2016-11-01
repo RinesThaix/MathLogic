@@ -35,13 +35,12 @@ public class Parser {
         while(true) {
             String partite = findPartite();
             switch(pl) {
-                case END:
-                    if(operations.isEmpty())
-                        return vars.get(0);
-                    return endThisGracefully(vars, operations);
                 case BRACKET_OPEN:
                     vars.add(parseExact(expr));
                     break;
+                case END:
+                    if(operations.isEmpty())
+                        return vars.get(0);
                 case BRACKET_CLOSE:
                     return endThisGracefully(vars, operations);
                 case VARIABLE:
